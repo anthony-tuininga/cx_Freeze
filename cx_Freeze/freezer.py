@@ -514,8 +514,10 @@ class Freezer(object):
         outFile = zipfile.PyZipFile(fileName, "w", zipfile.ZIP_DEFLATED)
 
         filesToCopy = []
-        ignorePatterns = shutil.ignore_patterns("*.py", "*.pyc", "*.pyo",
-                "__pycache__")
+        ignore_patterns_glob = ["*.py", "*.pyc", "*.pyo", "__pycache__"]
+        if sys.platform == "linux":
+            ignore_patterns_glob.extend(["*.so", "*.so.*"])
+        ignore_patterns = shutil.ignore_patterns(*ignore_patterns_glob)
         for module in modules:
 
             # determine if the module should be written to the file system;
@@ -528,21 +530,22 @@ class Freezer(object):
             # if the module refers to a package, check to see if this package
             # should be included in the zip file or should be written to the
             # file system; if the package should be written to the file system,
-            # any non-Python files are copied at this point if the target
-            # directory does not already exist
-            if module.path is not None and includeInFileSystem:
+            # data files (non-Python and non-DL files) are copied at this point
+            # if the target directory does not already exist
+            if includeInFileSystem and module.path is not None and \
+                    module.file is not None:
                 parts = module.name.split(".")
-                targetPackageDir = os.path.join(targetDir, *parts)
-                sourcePackageDir = os.path.dirname(module.file)
-                if not os.path.exists(targetPackageDir):
+                target_package_dir = os.path.join(targetDir, *parts)
+                if not os.path.exists(target_package_dir):
                     print("Copying data from package", module.name + "...")
-                    shutil.copytree(sourcePackageDir, targetPackageDir,
-                            ignore = ignorePatterns)
+                    source_package_dir = os.path.dirname(module.file)
+                    shutil.copytree(source_package_dir, target_package_dir,
+                                    ignore=ignore_patterns)
 
             # if an extension module is found in a package that is to be
-            # included in a zip file, save a Python loader in the zip file and
-            # copy the actual file to the build directory because shared
-            # libraries cannot be loaded from a zip file
+            # included in a zip file, copy the actual file to the build
+            # directory because shared libraries cannot be loaded from a
+            # zip file
             if module.code is None and module.file is not None \
                     and not includeInFileSystem:
                 parts = module.name.split(".")[:-1]
