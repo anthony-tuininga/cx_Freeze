@@ -79,20 +79,44 @@ static BOOL __stdcall BindStatusRoutine(
 {
     char imagePath[MAX_PATH + 1];
     char fileName[MAX_PATH + 1];
+    size_t sizeOfFileName;
+    PyObject* fileNameObject;
 
     switch (reason) {
         case BindImportModule:
             strcpy(imagePath, imageName);
+            PySys_WriteStdout("%s depends on %s\n", imageName, dllName);
             PathRemoveFileSpec(imagePath);
             if (!SearchPath(imagePath, dllName, NULL, sizeof(fileName),
                     fileName, NULL)) {
                 if (!SearchPath(NULL, dllName, NULL, sizeof(fileName),
-                        fileName, NULL))
+                    fileName, NULL)) {
+                    PySys_WriteStderr("SearchPath(%s) failed twice.\n",
+                                      imageName);
                     return FALSE;
+                }
+            }
+            fileNameObject = PyUnicode_FromString(fileName);
+            if (!fileNameObject) {
+                sizeOfFileName = strlen(fileName);
+                fileNameObject = PyUnicode_DecodeMBCS(fileName,
+                                                      sizeOfFileName,
+                                                      NULL);
+                if (!fileNameObject) {
+                    PySys_WriteStderr("Both PyUnicode_FromString/"
+                                      "DecodeMBCS(%s) failed.\n", fileName);
+                    return FALSE;
+                }
+                PySys_WriteStdout("Only PyUnicode_DecodeMBCS(%s) "
+                                  "succeeded.\n", fileName);
+                PyErr_Clear();
             }
             Py_INCREF(Py_None);
-            if (PyDict_SetItemString(g_ImageNames, fileName, Py_None) < 0)
+            if (PyDict_SetItem(g_ImageNames, fileNameObject, Py_None) < 0) {
+                PySys_WriteStderr("PyDict_SetItem(%s) failed.\n", fileName);
                 return FALSE;
+            }
+            Py_DECREF(fileNameObject);
             break;
         default:
             break;
@@ -341,11 +365,16 @@ static PyObject *ExtGetDependentFiles(
     PyObject *results;
     char *imageName;
 
-    if (!PyArg_ParseTuple(args, "s", &imageName))
+    if (!PyArg_ParseTuple(args, "s", &imageName)) {
+        PySys_WriteStderr("ExtGetDependentFiles: PyArg_ParseTuple failed.\n");
         return NULL;
+    }
+    PySys_WriteStdout("ExtGetDependentFiles: check %s\n", imageName);
     g_ImageNames = PyDict_New();
-    if (!g_ImageNames)
+    if (!g_ImageNames) {
+        PySys_WriteStderr("ExtGetDependentFiles: PyDict_New failed\n");
         return NULL;
+    }
     if (!BindImageEx(BIND_NO_BOUND_IMPORTS | BIND_NO_UPDATE | BIND_ALL_IMAGES,
                 imageName, NULL, NULL, BindStatusRoutine)) {
         Py_DECREF(g_ImageNames);
@@ -437,7 +466,7 @@ PyMODINIT_FUNC PyInit_util(void)
         return NULL;
 #ifdef MS_WINDOWS
     g_BindErrorException = PyErr_NewException("cx_Freeze.util.BindError",
-            NULL, NULL);
+            PyExc_OSError, NULL);
     if (!g_BindErrorException)
         return NULL;
     if (PyModule_AddObject(module, "BindError", g_BindErrorException) < 0)

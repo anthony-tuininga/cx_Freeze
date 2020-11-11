@@ -19,6 +19,7 @@ import sysconfig
 import time
 from typing import Optional
 import zipfile
+import traceback
 
 import cx_Freeze
 from cx_Freeze.darwintools import DarwinFile, MachOReference, DarwinFileTracker
@@ -326,15 +327,25 @@ class Freezer(object):
                     origPath = os.environ["PATH"]
                     os.environ["PATH"] = origPath + os.pathsep + \
                             os.pathsep.join(sys.path)
+                    dir_name, base_name = os.path.split(path)
+                    orig_cwd = os.getcwd()
+                    os.chdir(dir_name)
+                    import cx_Freeze.util
                     try:
-                        dependentFiles = cx_Freeze.util.GetDependentFiles(path)
+                        dependentFiles = cx_Freeze.util.GetDependentFiles(base_name)
                     except cx_Freeze.util.BindError as exc:
-                        # Sometimes this gets called when path is not actually a
-                        # library See issue 88
                         dependentFiles = []
                         fmt = "error during GetDependentFiles() of \"%s\": %s\n"
                         sys.stderr.write(fmt % (path, str(exc)))
-                    os.environ["PATH"] = origPath
+                    except Exception as exc:
+                        dependentFiles = []
+                        fmt = "Internal error during GetDependentFiles() of \"%s\": %s\n"
+                        sys.stderr.write(fmt % (path, str(exc)))
+                        sys.stderr.write("(This can be raised the path contains non-ASCII.)\n")
+                        traceback.print_exc()
+                    finally:
+                        os.environ["PATH"] = origPath
+                        os.chdir(orig_cwd)
                 else:
                     dependentFiles = []
             elif sys.platform == "darwin":
