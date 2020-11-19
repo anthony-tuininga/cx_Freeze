@@ -157,16 +157,17 @@ class ModuleFinder(object):
            When cx_Freeze is built, these modules (and modules they load) are
            included in the startup zip file.
            """
-        self.IncludeModule("traceback")
-        self.IncludeModule("warnings")
-        self.IncludeModule("unicodedata")
-        self.IncludePackage("encodings")
+        self.IncludeModule("collections.abc")
+        self.IncludeModule("importlib.abc")
         self.IncludeModule("io")
         self.IncludeModule("os")
         self.IncludeModule("sys")
+        self.IncludeModule("traceback")
+        self.IncludeModule("unicodedata")
+        self.IncludeModule("warnings")
         self.IncludeModule("zlib")
-        self.IncludeModule("collections.abc")
-        self.IncludeModule("importlib.abc")
+        module = self.IncludePackage("encodings")
+        module.store_in_file_system = False
 
     def _AddModule(self, name, path=None, file_name=None, parent=None):
         """Add a module to the list of modules but if one is already found,
