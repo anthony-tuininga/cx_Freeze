@@ -1,0 +1,82 @@
+{
+   "bcrypt": {
+      "test_app": "test_bcrypt",
+      "requirements": "bcrypt"
+   },
+   "cryptography": {
+      "test_app": "test_crypt",
+      "requirements": "cryptography"
+   },
+   "icon": {
+      "test_app": [
+          "test_icon",
+          "test_icon-invalid"
+      ]
+   },
+   "matplotlib": {
+      "test_app": [
+         "matplotlib_afm",
+         "gui:matplotlib_eg"
+      ],
+      "requirements": [
+         "matplotlib",
+         "numpy",
+         "pillow",
+         "wxPython;sys_platform!='mingw'"
+      ]
+   },
+   "pandas": {
+      "test_app": "test_pandas",
+      "requirements": "pandas"
+   },
+   "pillow": {
+      "test_app": "test_pillow",
+      "requirements": "pillow"
+   },
+   "pycountry": {
+      "test_app": "test",
+      "requirements": "pycountry"
+   },
+   "PyQt5": {
+      "test_app": "gui:PyQt5app",
+      "requirements": "PyQt5"
+   },
+   "pyside2": {
+      "test_app": "gui:test_pyside2",
+      "requirements": [
+          "PySide2;sys_platform!='mingw'",
+          "pyside2-qt5;sys_platform=='mingw'"
+      ]
+   },
+   "pytz": {
+      "test_app": "test_pytz",
+      "requirements": "pytz"
+   },
+   "pyzmq": {
+      "test_app": [
+         "svc:pyzmq_server",
+         "svc:pyzmq_client"
+      ],
+      "requirements": "pyzmq"
+   },
+   "service": {
+      "test_app": "cx_FreezeSampleService --install sample",
+      "requirements": "cx-logging",
+      "platform": ["win32", "mingw"]
+   },
+   "simple": {
+      "platform": "!mingw",
+      "test_app": "hello"
+   },
+   "sqlite": {
+      "test_app": "test_sqlite3"
+   },
+   "tz": {
+      "test_app": "test_tz",
+      "requirements": [
+          "backports.zoneinfo ; python_version<'3.9'",
+          "tzdata;python_version<'3.9'",
+          "tzdata;sys_platform=='win32'"
+      ]
+   }
+}
