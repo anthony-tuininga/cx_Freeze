@@ -22,6 +22,7 @@ from .darwintools import DarwinFile, MachOReference, DarwinFileTracker
 from .exception import ConfigError
 from .executable import Executable
 from .finder import ModuleFinder
+from .petools import get_pe_dependencies
 
 if sys.platform == "linux":
     from .patchelf import Patchelf
@@ -403,6 +404,7 @@ class Freezer:
                         print("error during GetDependentFiles() of ", end="")
                         print(f"{path!r}: {exc!s}")
                     os.environ["PATH"] = origPath
+                    dependentFiles.extend(get_pe_dependencies(path))
             elif sys.platform == "darwin":
                 # if darwinFile is None (which means that _GetDependentFiles is being called
                 # outside of _CopyFile -- e.g., one of the preliminary calls in _FreezeExecutable),
