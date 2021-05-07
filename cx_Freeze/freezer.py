@@ -400,8 +400,9 @@ class Freezer:
         imagehlp library on Windows, otool on Mac OS X and ldd on Linux);
         limit this list by the exclusion lists as needed"""
         path = os.path.normcase(path)
-        dependentFiles = self.dependentFiles.get(path, [])
-        if not dependentFiles:
+        dependentFiles = self.dependentFiles.get(path, None)
+        if dependentFiles is None:
+            dependentFiles = []
             if sys.platform == "win32":
                 if path.endswith((".exe", ".dll", ".pyd")):
                     origPath = os.environ["PATH"]
