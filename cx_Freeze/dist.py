@@ -235,7 +235,8 @@ class build_exe(distutils.core.Command):
         if self.silent is not None and self.silent:
             self.silent_setting = 1
 
-        if self.silent_level is False: self.silent_setting = 0
+        if self.silent_level is None: pass
+        elif self.silent_level is False: self.silent_setting = 0
         elif self.silent_level is True: self.silent_setting = 1
         elif isinstance(self.silent_level, int): self.silent_setting = self.silent_level
         elif isinstance(self.silent_level, str):
