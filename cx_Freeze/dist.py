@@ -256,7 +256,8 @@ class build_exe(distutils.core.Command):
             warnings.warn(
                 "namespace-packages is obsolete and will be removed in the next version"
             )
-        freezer = Freezer(
+
+        freezer: Freezer = Freezer(
             self.distribution.executables,
             constants_module,
             self.includes,
